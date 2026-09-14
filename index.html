@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPO Alert Bot - Never Miss an Opening</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex flex-col justify-between">
+
+    <!-- Hero Section -->
+    <div class="max-w-4xl mx-auto px-6 py-20 text-center">
+        <span class="bg-blue-500/10 text-blue-400 text-xs font-semibold px-3 py-1 rounded-full border border-blue-500/20 uppercase tracking-widest">Free Automated Alerts</span>
+        <h1 class="text-4xl md:text-6xl font-extrabold mt-6 tracking-tight leading-tight">
+            Never Miss an Upcoming <span class="text-blue-500">IPO</span> Opening or Closing Day
+        </h1>
+        <p class="text-slate-400 text-lg mt-4 max-w-2xl mx-auto">
+            Get instant email notifications on the exact morning an IPO opens for application and a last-chance reminder on closing day.
+        </p>
+
+        <!-- Subscription Form -->
+        <form onsubmit="handleSubscribe(event)" class="mt-8 flex flex-col sm:flex-row justify-center gap-3 max-w-md mx-auto">
+            <input 
+                type="email" 
+                id="emailInput" 
+                placeholder="Enter your email address..." 
+                required 
+                class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+            >
+            <button 
+                type="submit" 
+                class="bg-blue-600 hover:bg-blue-500 font-semibold px-6 py-3 rounded-xl transition duration-200"
+            >
+                Subscribe
+            </button>
+        </form>
+        
+        <div id="statusMessage" class="mt-4 text-sm"></div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="border-t border-slate-800 bg-slate-950 py-16">
+        <div class="max-w-4xl mx-auto px-6 text-center">
+            <h2 class="text-2xl font-bold">How It Works</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-10">
+                <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+                    <div class="text-blue-500 text-3xl font-bold mb-2">1</div>
+                    <h3 class="font-semibold text-lg">Daily Scraping</h3>
+                    <p class="text-slate-400 text-sm mt-2">Our bot checks financial portals every morning for new IPO schedules.</p>
+                </div>
+                <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+                    <div class="text-blue-500 text-3xl font-bold mb-2">2</div>
+                    <h3 class="font-semibold text-lg">Smart Tracking</h3>
+                    <p class="text-slate-400 text-sm mt-2">Opening and closing dates are stored securely in our database.</p>
+                </div>
+                <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800">
+                    <div class="text-blue-500 text-3xl font-bold mb-2">3</div>
+                    <h3 class="font-semibold text-lg">Direct Alerts</h3>
+                    <p class="text-slate-400 text-sm mt-2">You receive clean, timely reminders straight to your inbox.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="py-6 text-center text-slate-600 text-xs border-t border-slate-800">
+        &copy; Automated IPO Reminder Bot. Built with Python, Supabase, and GitHub Pages.
+    </footer>
+
+    <!-- Supabase Integration Script -->
+    <script>
+        // REPLACE THESE WITH YOUR ACTUAL SUPABASE KEYS
+        const SUPABASE_URL = "https://dooninukdcfuqhwdtrbi.supabase.co/rest/v1/";
+        const SUPABASE_ANON_KEY = "sb_publishable_1RzZkL7yqHUwaQTC1skH8A_CpqKELaY";
+
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function handleSubscribe(event) {
+            event.preventDefault();
+            const emailInput = document.getElementById("emailInput");
+            const statusDiv = document.getElementById("statusMessage");
+            const email = emailInput.value;
+
+            statusDiv.innerHTML = '<span class="text-slate-400">Submitting...</span>';
+
+            const { data, error } = await supabaseClient
+                .from('subscribers')
+                .insert([{ email: email }]);
+
+            if (error) {
+                if (error.code === '23505') {
+                    statusDiv.innerHTML = '<span class="text-yellow-400">You are already subscribed!</span>';
+                } else {
+                    statusDiv.innerHTML = `<span class="text-red-400">Error: ${error.message}</span>`;
+                }
+            } else {
+                statusDiv.innerHTML = '<span class="text-green-400">🎉 Success! You are now subscribed to IPO alerts.</span>';
+                emailInput.value = '';
+            }
+        }
+    </script>
+</body>
+</html>
