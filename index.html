@@ -67,7 +67,7 @@
         &copy; Automated IPO Reminder Bot. Built with Python, base, and GitHub Pages.
     </footer>
 
-    <!-- base Integration Script --<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
   const SUPABASE_URL = "https://dooninukdcfuqhwdtrbi.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRvb25pbnVrZGNmdXFod2R0cmJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkyNTQwNzYsImV4cCI6MjEwNDgzMDA3Nn0._FNJJeHQjqFLIPHMWsslBEcDpJMOmMziOg2R4ZUOEQU";
@@ -90,7 +90,7 @@
       .insert([{ email: email }]);
 
     if (error) {
-      if (error.code === "23505") { // Unique violation
+      if (error.code === "23505") { // Duplicate email
         messageEl.textContent = "You're already subscribed!";
         messageEl.className = "text-sm text-yellow-400 mt-2";
       } else {
