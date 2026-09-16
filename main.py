@@ -49,12 +49,12 @@ def scrape_upcoming_ipos():
         rows = table.find_all("tr")[1:]  # Skip table header row
         
         for row in rows:
-            cols = [col.text.strip() for col in row.find_all("td")]
+            cols = [col.text.strip().replace("\n", " ") for col in row.find_all("td")]
             # Extract Company Name, Opening Date, and Closing Date
             if len(cols) >= 10:
-                company_name = cols[1]
-                open_date = cols[8]   # Standard date format YYYY-MM-DD
-                close_date = cols[9]  # Standard date format YYYY-MM-DD
+                company_name = cols[1].strip()
+                open_date = cols[8].strip()   # Standard date format YYYY-MM-DD
+                close_date = cols[9].strip()  # Standard date format YYYY-MM-DD
                 
                 if open_date and close_date and len(open_date) == 10:
                     scraped_ipos.append({
@@ -98,11 +98,12 @@ def sync_ipos_to_supabase(scraped_ipos):
 # ==========================================
 def send_broadcast_email(subscribers, subject, content_html):
     """Broadcasts notification emails using Resend."""
+    clean_subject = subject.replace("\n", " ").replace("\r", " ").strip()
     try:
         response = resend.Emails.send({
             "from": SENDER_EMAIL,
             "to": subscribers,
-            "subject": subject,
+            "subject": clean_subject,
             "html": content_html
         })
         print(f"Dispatched email broadcast. Resend ID: {response.get('id')}")
@@ -131,18 +132,19 @@ def run_daily_notifications():
         .execute()
         
     for ipo in open_ipos.data:
-        subject = f"🚀 IPO OPEN TODAY: {ipo['company_name']}"
+        clean_company = str(ipo['company_name']).replace('\n', ' ').strip()
+        subject = f"🚀 IPO OPEN TODAY: {clean_company}"
         body = f"""
         <div style="font-family: sans-serif; padding: 20px;">
             <h2>IPO Subscription is Now Open!</h2>
-            <p><strong>Company:</strong> {ipo['company_name']}</p>
+            <p><strong>Company:</strong> {clean_company}</p>
             <p><strong>Opening Date:</strong> {ipo['open_date']}</p>
             <p><strong>Closing Date:</strong> {ipo['close_date']}</p>
             <hr>
             <p>Don't forget to submit your application today!</p>
         </div>
         """
-        print(f"Sending opening alert for {ipo['company_name']}...")
+        print(f"Sending opening alert for {clean_company}...")
         send_broadcast_email(subscribers, subject, body)
         
         supabase.table("ipos") \
@@ -158,15 +160,16 @@ def run_daily_notifications():
         .execute()
         
     for ipo in close_ipos.data:
-        subject = f"⚠️ LAST CHANCE: {ipo['company_name']} IPO Closes Today!"
+        clean_company = str(ipo['company_name']).replace('\n', ' ').strip()
+        subject = f"⚠️ LAST CHANCE: {clean_company} IPO Closes Today!"
         body = f"""
         <div style="font-family: sans-serif; padding: 20px;">
             <h2>IPO Closes Today!</h2>
-            <p><strong>Company:</strong> {ipo['company_name']}</p>
-            <p>This is your final reminder that applications for {ipo['company_name']} close today ({ipo['close_date']}).</p>
+            <p><strong>Company:</strong> {clean_company}</p>
+            <p>This is your final reminder that applications for {clean_company} close today ({ipo['close_date']}).</p>
         </div>
         """
-        print(f"Sending closing alert for {ipo['company_name']}...")
+        print(f"Sending closing alert for {clean_company}...")
         send_broadcast_email(subscribers, subject, body)
         
         supabase.table("ipos") \
