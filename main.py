@@ -123,7 +123,7 @@ def send_broadcast_email(subscribers, subject, content_html):
 
 
 def run_daily_notifications():
-    """Checks date matches for today and dispatches alerts."""
+    """Checks date matches for today and dispatches alerts in English & Nepali."""
     today = datetime.date.today().isoformat()
     print(f"Checking schedules against current date: {today}")
     
@@ -144,15 +144,30 @@ def run_daily_notifications():
         
     for ipo in open_ipos.data:
         clean_company = str(ipo['company_name']).replace('\n', ' ').strip()
-        subject = f"🚀 IPO OPEN TODAY: {clean_company}"
+        subject = f"🚀 IPO OPEN TODAY: {clean_company} | आजदेखि IPO खुल्यो!"
         body = f"""
-        <div style="font-family: sans-serif; padding: 20px;">
-            <h2>IPO Subscription is Now Open!</h2>
-            <p><strong>Company:</strong> {clean_company}</p>
-            <p><strong>Opening Date:</strong> {ipo['open_date']}</p>
-            <p><strong>Closing Date:</strong> {ipo['close_date']}</p>
-            <hr>
-            <p>Don't forget to submit your application today!</p>
+        <div style="font-family: sans-serif; padding: 20px; color: #333; line-height: 1.6;">
+            <h2 style="color: #2b6cb0;">🚀 IPO Subscription is Now Open!</h2>
+            <h3 style="color: #4a5568; margin-top: -10px;">आजदेखि IPO निष्कासन तथा बिक्री खुला भएको छ!</h3>
+            
+            <table style="width: 100%; max-width: 500px; border-collapse: collapse; margin: 20px 0;">
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 8px 0;"><strong>Company (कम्पनी):</strong></td>
+                    <td style="padding: 8px 0;">{clean_company}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 8px 0;"><strong>Opening Date (भर्ने सुरु मिति):</strong></td>
+                    <td style="padding: 8px 0;">{ipo['open_date']}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #e2e8f0;">
+                    <td style="padding: 8px 0;"><strong>Closing Date (भर्ने अन्तिम मिति):</strong></td>
+                    <td style="padding: 8px 0;">{ipo['close_date']}</td>
+                </tr>
+            </table>
+            
+            <hr style="border: none; border-top: 1px solid #e2e8f0;">
+            <p>Don't forget to submit your application today via MeroShare!</p>
+            <p style="font-weight: bold; color: #2d3748;">आजै मेरोसेयर (MeroShare) मार्फत आफ्नो आवेदन पेस गर्न नबिर्सनुहोला!</p>
         </div>
         """
         print(f"Sending opening alert for {clean_company}...")
@@ -172,12 +187,15 @@ def run_daily_notifications():
         
     for ipo in close_ipos.data:
         clean_company = str(ipo['company_name']).replace('\n', ' ').strip()
-        subject = f"⚠️ LAST CHANCE: {clean_company} IPO Closes Today!"
+        subject = f"⚠️ LAST CHANCE: {clean_company} IPO Closes Today! | आज भर्ने अन्तिम दिन!"
         body = f"""
-        <div style="font-family: sans-serif; padding: 20px;">
-            <h2>IPO Closes Today!</h2>
-            <p><strong>Company:</strong> {clean_company}</p>
-            <p>This is your final reminder that applications for {clean_company} close today ({ipo['close_date']}).</p>
+        <div style="font-family: sans-serif; padding: 20px; color: #333; line-height: 1.6;">
+            <h2 style="color: #c53030;">⚠️ LAST CHANCE: IPO Closes Today!</h2>
+            <h3 style="color: #742a2a; margin-top: -10px;">आज IPO आवेदन दिने अन्तिम दिन हो!</h3>
+            
+            <p><strong>Company (कम्पनी):</strong> {clean_company}</p>
+            <p>This is your final reminder that applications for <strong>{clean_company}</strong> close today ({ipo['close_date']}).</p>
+            <p style="font-weight: bold; color: #c53030;"><strong>{clean_company}</strong> को IPO मा आवेदन दिने आज अन्तिम दिन भएकाले तुरुन्त MeroShare बाट भर्नुहोस्।</p>
         </div>
         """
         print(f"Sending closing alert for {clean_company}...")
