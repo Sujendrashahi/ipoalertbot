@@ -1,23 +1,23 @@
 import os
 import datetime
+import smtplib
 import requests
 from bs4 import BeautifulSoup
+from email.message import EmailMessage
 from supabase import create_client, Client
-import resend
 
 # ==========================================
 # 1. INITIALIZE CLIENTS & ENV VARIABLES
 # ==========================================
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-RESEND_API_KEY = os.environ.get("RESEND_API_KEY")
-SENDER_EMAIL = os.environ.get("SENDER_EMAIL", "onboarding@resend.dev")
+GMAIL_USER = os.environ.get("GMAIL_USER")
+GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
 
-if not SUPABASE_URL or not SUPABASE_KEY or not RESEND_API_KEY:
+if not SUPABASE_URL or not SUPABASE_KEY or not GMAIL_USER or not GMAIL_APP_PASSWORD:
     raise ValueError("Missing essential environment variables in GitHub Secrets.")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-resend.api_key = RESEND_API_KEY
 
 
 # ==========================================
@@ -50,7 +50,6 @@ def scrape_upcoming_ipos():
         
         for row in rows:
             cols = [col.text.strip().replace("\n", " ") for col in row.find_all("td")]
-            # Extract Company Name, Opening Date, and Closing Date
             if len(cols) >= 10:
                 company_name = cols[1].strip()
                 open_date = cols[8].strip()   # Standard date format YYYY-MM-DD
@@ -94,21 +93,33 @@ def sync_ipos_to_supabase(scraped_ipos):
 
 
 # ==========================================
-# 4. EMAIL DISPATCH SYSTEM
+# 4. EMAIL DISPATCH SYSTEM (GMAIL SMTP)
 # ==========================================
 def send_broadcast_email(subscribers, subject, content_html):
-    """Broadcasts notification emails using Resend."""
+    """Broadcasts notification emails using Gmail SMTP."""
     clean_subject = subject.replace("\n", " ").replace("\r", " ").strip()
+    
+    if not subscribers:
+        print("No subscribers to email.")
+        return
+
     try:
-        response = resend.Emails.send({
-            "from": SENDER_EMAIL,
-            "to": subscribers,
-            "subject": clean_subject,
-            "html": content_html
-        })
-        print(f"Dispatched email broadcast. Resend ID: {response.get('id')}")
+        # Reuse a single SMTP connection for the entire subscriber list
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+            
+            for recipient in subscribers:
+                msg = EmailMessage()
+                msg["Subject"] = clean_subject
+                msg["From"] = f"IPO Alert Bot <{GMAIL_USER}>"
+                msg["To"] = recipient
+                msg.add_alternative(content_html, subtype="html")
+                
+                smtp.send_message(msg)
+                print(f"Delivered email to: {recipient}")
+                
     except Exception as e:
-        print(f"Resend dispatch error: {e}")
+        print(f"Gmail SMTP dispatch error: {e}")
 
 
 def run_daily_notifications():
